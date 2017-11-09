@@ -45,14 +45,7 @@ def svm_loss_naive(W, X, y, reg):
   # Add regularization to the loss.
   loss += reg * np.sum(W * W)
 
-  #############################################################################
-  # TODO:                                                                     #
-  # Compute the gradient of the loss function and store it dW.                #
-  # Rather that first computing the loss and then computing the derivative,   #
-  # it may be simpler to compute the derivative at the same time that the     #
-  # loss is being computed. As a result you may need to modify some of the    #
-  # code above to compute the gradient.                                       #
-  #############################################################################
+
 
   dW = dW / num_train + 2 * W
 
@@ -68,39 +61,24 @@ def svm_loss_vectorized(W, X, y, reg):
   loss = 0.0
   dW = np.zeros(W.shape) # initialize the gradient as zero
 
-  #############################################################################
-  # TODO:                                                                     #
-  # Implement a vectorized version of the structured SVM loss, storing the    #
-  # result in loss.                                                           #
-  #############################################################################
+
   num_train = X.shape[0]
   scores = X.dot(W)
   correct_class_score = scores[(range(num_train), y)].reshape((num_train, 1))
   margin = scores - correct_class_score + 1
   margin[(range(num_train), y)] = 0
   multiplier = (margin>0).sum(axis=1)
-  dW = -(X*multiplier).transpose()[:, y]
+  m = (margin>0)
+  dW_j = X.transpose().dot(m)
+  n = np.zeros((num_train, W.shape[1]))
+  n[[range(y.shape[0]), y]] = multiplier
+  dW_y = -X.transpose().dot(n)
 
   loss_item = margin[margin > 0]
   loss = loss_item.sum()
   loss = loss / num_train + reg * np.sum(W * W)
-  #############################################################################
-  #                             END OF YOUR CODE                              #
-  #############################################################################
 
+  dW = (dW_y + dW_j) / num_train + 2*W
 
-  #############################################################################
-  # TODO:                                                                     #
-  # Implement a vectorized version of the gradient for the structured SVM     #
-  # loss, storing the result in dW.                                           #
-  #                                                                           #
-  # Hint: Instead of computing the gradient from scratch, it may be easier    #
-  # to reuse some of the intermediate values that you used to compute the     #
-  # loss.                                                                     #
-  #############################################################################
-
-  #############################################################################
-  #                             END OF YOUR CODE                              #
-  #############################################################################
 
   return loss, dW
