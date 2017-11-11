@@ -53,7 +53,10 @@ class LinearClassifier(object):
       # Hint: Use np.random.choice to generate indices. Sampling with         #
       # replacement is faster than sampling without replacement.              #
       #########################################################################
-      pass
+      num_samples = X.shape[0]
+      batch_index = np.random.choice(range(num_samples), batch_size, replace=True)
+      X_batch = X[batch_index, :]
+      y_batch = y[batch_index]
       #########################################################################
       #                       END OF YOUR CODE                                #
       #########################################################################
@@ -67,7 +70,7 @@ class LinearClassifier(object):
       # TODO:                                                                 #
       # Update the weights using the gradient and the learning rate.          #
       #########################################################################
-      pass
+      self.W -= learning_rate*grad
       #########################################################################
       #                       END OF YOUR CODE                                #
       #########################################################################
@@ -96,15 +99,16 @@ class LinearClassifier(object):
     # TODO:                                                                   #
     # Implement this method. Store the predicted labels in y_pred.            #
     ###########################################################################
-    pass
+    y_pred = X.dot(self.W).argmax(axis=1)
+
     ###########################################################################
     #                           END OF YOUR CODE                              #
     ###########################################################################
     return y_pred
-  
+
   def loss(self, X_batch, y_batch, reg):
     """
-    Compute the loss function and its derivative. 
+    Compute the loss function and its derivative.
     Subclasses will override this.
 
     Inputs:
