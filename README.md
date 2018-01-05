@@ -1,5 +1,5 @@
 # CNNStanford
-This project is the solution for [CNN Stanford course](http://cs231n.stanford.edu/index.html)
+This project is the solution for [CNN Stanford course](http://cs231n.stanford.edu/index.html).
 
 ## Assignment 1
 - [x] SVM loss
