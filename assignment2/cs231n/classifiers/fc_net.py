@@ -296,15 +296,20 @@ class FullyConnectedNet(object):
 
         for i in range(self.num_layers, 1, -1):
             if i==self.num_layers:
-                dout, grads['W'+str(i)], grads['b'+str(i)] = affine_backward(dout, cache_all.pop())
-                grads['W'+str(i)] += self.reg*self.params['W'+str(i)]
+                dout, dw, db = affine_backward(dout, cache_all.pop())
+                grads['W'+str(i)] = dw+self.reg*self.params['W'+str(i)]
+                grads['b'+str(i)] = db
             if self.use_dropout:
                 dout = dropout_backward(dout, cache_all.pop())
             dout = relu_backward(dout, cache_all.pop())
             if self.use_batchnorm:
-                dout = batchnorm_backward(dout, cache_all.pop())
-            dout, grads['W'+str(i-1)], grads['b'+str(i-1)] = affine_backward(dout, cache_all.pop())
-            grads['W'+str(i-1)] += self.reg*self.params['W'+str(i-1)]
+                dout, dgamma, dbeta = batchnorm_backward(dout, cache_all.pop())
+                grads['gamma'+str(i-1)] = dgamma
+                grads['beta'+str(i-1)] = dbeta
+            dout, dw, db = affine_backward(dout, cache_all.pop())
+            grads['W'+str(i-1)] = dw+self.reg*self.params['W'+str(i-1)]
+            grads['b'+str(i-1)] = db
+
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
