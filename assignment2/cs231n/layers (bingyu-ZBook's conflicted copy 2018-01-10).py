@@ -182,7 +182,7 @@ def batchnorm_forward(x, gamma, beta, bn_param):
         var = np.var(x, axis=0)
         x_normal = (x-mean) / (np.sqrt(var)+eps)
         out = gamma*x_normal+beta
-        cache = (mean, var, gamma, beta, x, x_normal, bn_param)
+        cache = (var, gamma, beta, x_normal, bn_param)
         running_mean = momentum*running_mean+(1-momentum)*mean
         running_var = momentum*running_var+(1-momentum)*var
         #######################################################################
@@ -235,7 +235,7 @@ def batchnorm_backward(dout, cache):
     # TODO: Implement the backward pass for batch normalization. Store the    #
     # results in the dx, dgamma, and dbeta variables.                         #
     ###########################################################################
-    mean, var, gamma, beta, x, x_normal, bn_param = cache
+    var, gamma, beta, x_normal, bn_param = cache
     eps = bn_param.get('eps', 1e-5)
     dgamma = np.sum(dout*x_normal, axis=0)
     dbeta = np.sum(dout, axis=0)
@@ -271,7 +271,7 @@ def batchnorm_backward_alt(dout, cache):
     # should be able to compute gradients with respect to the inputs in a     #
     # single statement; our implementation fits on a single 80-character line.#
     ###########################################################################
-    mean, var, gamma, beta, x, x_normal, bn_param = cache
+    var, gamma, beta, x_normal, bn_param = cache
     eps = bn_param.get('eps', 1e-5)
     dgamma = np.sum(dout*x_normal, axis=0)
     dbeta = np.sum(dout, axis=0)
@@ -390,11 +390,7 @@ def conv_forward_naive(x, w, b, conv_param):
     # TODO: Implement the convolutional forward pass.                         #
     # Hint: you can use the function np.pad for padding.                      #
     ###########################################################################
-    N, C, H, W = x.shape
-    for n in range(N): #sample
-        for c in range(C): #channal
-            feature = x[n][c]
-            
+    pass
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -595,5 +591,3 @@ def softmax_loss(x, y):
     dx[np.arange(N), y] -= 1
     dx /= N
     return loss, dx
-
-from keras.layers import convolutional  

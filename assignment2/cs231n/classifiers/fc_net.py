@@ -187,6 +187,7 @@ class FullyConnectedNet(object):
             if (use_batchnorm):
                 self.params['gamma'+str(i+2)] = np.ones((hidden_dims[i+1],))
                 self.params['beta'+str(i+2)] = np.zeros((hidden_dims[i+1],))
+        if (num_hid==1): i=-1 #in case only one hidden layer
         self.params['W'+str(i+3)] = np.random.normal(0, weight_scale, (hidden_dims[-1], num_classes))
         self.params['b'+str(i+3)] = np.zeros((num_classes,))
         ############################################################################
