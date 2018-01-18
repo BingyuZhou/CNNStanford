@@ -391,10 +391,28 @@ def conv_forward_naive(x, w, b, conv_param):
     # Hint: you can use the function np.pad for padding.                      #
     ###########################################################################
     N, C, H, W = x.shape
+    F, _, HH, WW = w.shape
+    pad = conv_param['pad']
+    stride = conv_param['stride']
+    HC = 1+(H+2*pad-HH)/stride
+    WC = 1+(W+2*pad-WW)/stride
+    out = np.zeros((N, F, HC, WC))
     for n in range(N): #sample
-        for c in range(C): #channal
-            feature = x[n][c]
-            
+        for f in range(F): #filter
+            conv_sum = np.zeros((HC, WC))
+            for c in range(C): #channal
+                feature = x[n][c]
+                feature_pad = np.pad(feature, pad, 'constant') #padding
+                conv = np.zeros((HC,WC))
+                for i in np.linspace(0, stride*(HC-1) , HC, dtype='int'):
+                    for j in np.linspace(0, stride*(WC-1) , WC, dtype='int'):
+                        receive = feature_pad[i:i+HH, j:j+WW]
+                        conv[i/stride, j/stride] = np.sum(receive*w[f,c])
+                conv_sum += conv
+            out[n, f] = conv_sum + b[f]
+
+
+
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -596,4 +614,4 @@ def softmax_loss(x, y):
     dx /= N
     return loss, dx
 
-from keras.layers import convolutional  
+from keras.layers import convolutional
