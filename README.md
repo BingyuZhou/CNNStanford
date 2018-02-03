@@ -14,3 +14,8 @@ This project is the solution for [CNN Stanford course](http://cs231n.stanford.ed
 - [x] Train a deep neural network for CIFAR10 (GoogleNet)
 
 ## Assignment 3
+- [ ] Vanilla RNN
+- [ ] LSTM
+- [ ] CNN+RNN for image captioning
+- [ ] Visualizing the features of CNN
+- [ ] Style transfer with generative adversarial network(GAN) 
