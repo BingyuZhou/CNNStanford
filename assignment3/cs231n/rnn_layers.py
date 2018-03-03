@@ -36,7 +36,7 @@ def rnn_step_forward(x, prev_h, Wx, Wh, b):
     ##########################################################################
     linear_sum = np.dot(x, Wx) + np.dot(prev_h, Wh) + b
     next_h = np.tanh(linear_sum)
-    cache = (x, prev_h, linear_sum, Wx, Wh)
+    cache = (x, prev_h, Wx, Wh, next_h)
     ##########################################################################
     #                               END OF YOUR CODE                             #
     ##########################################################################
@@ -65,8 +65,8 @@ def rnn_step_backward(dnext_h, cache):
     # HINT: For the tanh function, you can compute the local derivative in terms #
     # of the output value from tanh.                                             #
     ##########################################################################
-    x, prev_h, linear_sum, Wx, Wh = cache
-    dlinear_sum = 1 - np.tanh(linear_sum)**2
+    x, prev_h, Wx, Wh, next_h = cache
+    dlinear_sum = 1 - next_h**2
     out = dnext_h * dlinear_sum
     dx = np.dot(out, Wx.T)
     dprev_h = np.dot(out, Wh.T)
@@ -103,7 +103,16 @@ def rnn_forward(x, h0, Wx, Wh, b):
     # input data. You should use the rnn_step_forward function that you defined  #
     # above. You can use a for loop to help compute the forward pass.            #
     ##########################################################################
-    pass
+    N, T, _ = x.shape
+    _, H = h0.shape
+    prev_h = h0
+    cache = []
+    h = np.zeros((N,T,H))
+    for i in range(T):
+        next_h, _ = rnn_step_forward(x[:,i,:], prev_h, Wx, Wh, b)
+        prev_h=next_h
+        h[:,i,:] = next_h
+    cache = (x, h0, Wx, Wh, h)
     ##########################################################################
     #                               END OF YOUR CODE                             #
     ##########################################################################
@@ -130,7 +139,21 @@ def rnn_backward(dh, cache):
     # sequence of data. You should use the rnn_step_backward function that you   #
     # defined above. You can use a for loop to help compute the backward pass.   #
     ##########################################################################
-    pass
+    N, T, H = dh.shape
+    dprev_h = np.zeros((N, H))
+    x, h0, Wx, Wh, h = cache
+    dx = np.zeros_like(x)
+    dWx = np.zeros_like(Wx)
+    dWh = np.zeros_like(Wh)
+    db = np.zeros((H))
+    h = np.insert(h, 0, h0, axis=1)
+    for i in range(T, 0, -1):
+        cache_i = (x[:,i-1,:], h[:,i-1,:], Wx, Wh, h[:,i,:])
+        dx[:,i-1,:], dprev_h, dWx_i, dWh_i, db_i = rnn_step_backward(dh[:,i-1,:]+dprev_h, cache_i)
+        dWx += dWx_i
+        dWh += dWh_i
+        db += db_i
+    dh0 = dprev_h
     ##########################################################################
     #                               END OF YOUR CODE                             #
     ##########################################################################
@@ -158,7 +181,8 @@ def word_embedding_forward(x, W):
     #                                                                            #
     # HINT: This can be done in one line using NumPy's array indexing.           #
     ##########################################################################
-    pass
+    out = W[x]
+    cache = (x, W)
     ##########################################################################
     #                               END OF YOUR CODE                             #
     ##########################################################################
@@ -187,7 +211,17 @@ def word_embedding_backward(dout, cache):
     # Note that Words can appear more than once in a sequence.                   #
     # HINT: Look up the function np.add.at                                       #
     ##########################################################################
-    pass
+    # np.add.at
+    # Performs unbuffered in place operation on operand 'a' for elements
+    # specified by 'indices'. For addition ufunc, this method is equivalent to
+    # `a[indices] += b`, except that results are accumulated for elements that
+    # are indexed more than once. For example, `a[[0,0]] += 1` will only
+    # increment the first element once because of buffering, whereas
+    # `add.at(a, [0,0], 1)` will increment the first element twice.
+    x, W = cache
+    dW = np.zeros_like(W)
+    np.add.at(dW, x, dout)
+
     ##########################################################################
     #                               END OF YOUR CODE                             #
     ##########################################################################
