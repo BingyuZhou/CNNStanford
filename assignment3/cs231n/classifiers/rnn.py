@@ -149,8 +149,10 @@ class CaptioningRNN(object):
         loss, dout = temporal_softmax_loss(out, captions_out, mask)
 
         """backward pass"""
-        dout3, grads['W_vocab'], grads['b_vocab'] =  temporal_affine_backward(dout, cache3)
-        dout2, dh0, grads['Wx'], grads['Wh'], grads['b'] = rnn_backward(dout3, cache2)
+        dout3, grads['W_vocab'], grads[
+            'b_vocab'] = temporal_affine_backward(dout, cache3)
+        dout2, dh0, grads['Wx'], grads['Wh'], grads[
+            'b'] = rnn_backward(dout3, cache2)
         grads['W_embed'] = word_embedding_backward(dout2, cache1)
         grads['W_proj'] = np.dot(features.T, dh0)
         grads['b_proj'] = np.sum(dh0, axis=0)
@@ -214,7 +216,23 @@ class CaptioningRNN(object):
         # functions; you'll need to call rnn_step_forward or lstm_step_forward in #
         # a loop.                                                                 #
         #######################################################################
-        pass
+        h0 = np.dot(features, W_proj) + b_proj
+        word_prev = np.full((N, 1), self._start, dtype=int)
+        i = 0
+        h_prev = h0
+        while i < max_length:
+            word_prev_embed, _ = word_embedding_forward(
+                word_prev.reshape(-1, 1), W_embed)
+            next_h, _ = rnn_step_forward(
+                word_prev_embed[:, 0, :], h_prev, Wx, Wh, b)
+            out, _ = temporal_affine_forward(
+                next_h.reshape(N, 1, -1), W_vocab, b_vocab)
+            word_next = np.argmax(out.reshape(N, -1), axis=1)
+            word_prev = word_next
+            h_prev = next_h
+            captions[:, i] = word_next
+            i = i + 1
+
         #######################################################################
         #                             END OF YOUR CODE                             #
         #######################################################################
