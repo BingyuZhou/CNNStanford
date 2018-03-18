@@ -143,6 +143,8 @@ class CaptioningRNN(object):
 
         if self.cell_type is 'rnn':
             h, cache2 = rnn_forward(word_embed, h0, Wx, Wh, b)
+        else:
+            h, cache2 = lstm_forward(word_embed, h0, Wx, Wh, b)
 
         out, cache3 = temporal_affine_forward(h, W_vocab, b_vocab)
 
@@ -151,8 +153,12 @@ class CaptioningRNN(object):
         """backward pass"""
         dout3, grads['W_vocab'], grads[
             'b_vocab'] = temporal_affine_backward(dout, cache3)
-        dout2, dh0, grads['Wx'], grads['Wh'], grads[
-            'b'] = rnn_backward(dout3, cache2)
+        if self.cell_type is 'rnn':
+            dout2, dh0, grads['Wx'], grads['Wh'], grads[
+                'b'] = rnn_backward(dout3, cache2)
+        else:
+            dout2, dh0, grads['Wx'], grads['Wh'], grads[
+                'b'] = lstm_backward(dout3, cache2)
         grads['W_embed'] = word_embedding_backward(dout2, cache1)
         grads['W_proj'] = np.dot(features.T, dh0)
         grads['b_proj'] = np.sum(dh0, axis=0)
@@ -220,11 +226,16 @@ class CaptioningRNN(object):
         word_prev = np.full((N, 1), self._start, dtype=int)
         i = 0
         h_prev = h0
+        c_prev = np.zeros_like(h0)
         while i < max_length:
             word_prev_embed, _ = word_embedding_forward(
                 word_prev.reshape(-1, 1), W_embed)
-            next_h, _ = rnn_step_forward(
-                word_prev_embed[:, 0, :], h_prev, Wx, Wh, b)
+            if self.cell_type is 'rnn':
+                next_h, _ = rnn_step_forward(
+                    word_prev_embed[:, 0, :], h_prev, Wx, Wh, b)
+            else:
+                next_h, next_c,_ = lstm_step_forward(word_prev_embed[:, 0, :], h_prev, c_prev, Wx, Wh, b)
+                c_prev = next_c
             out, _ = temporal_affine_forward(
                 next_h.reshape(N, 1, -1), W_vocab, b_vocab)
             word_next = np.argmax(out.reshape(N, -1), axis=1)
